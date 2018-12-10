@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="/js/echarts.js"></script>
+<script type="text/javascript" src="http://cdn.staticfile.org/jquery/2.1.1-rc2/jquery.min.js"></script>
+<title>Visualization</title>
+</head>
+<body>
+	<div id="main" style="width:1200px;height:800px;"></div>
+	<script type="text/javascript">
+		var statistic = {'北京市':0,'天津市':0,'上海市':0,'重庆市':0,'河北省':0,'山西省':0,'辽宁省':0,'吉林省':0,'黑龙江省':0,
+			'江苏省':0,'浙江省':0,'安徽省':0,'福建省':0,'江西省':0,'山东省':0,'河南省':0,'湖北省':0,'湖南省':0,'广东省':0,'海南省':0,
+			'四川省':0,'贵州省':0,'云南省':0,'陕西省':0,'甘肃省':0,'青海省':0,'台湾省':0,'内蒙古自治区':0,'广西壮族自治区':0,
+			'西藏自治区':0,'宁夏回族自治区':0,'新疆维吾尔自治区':0,'香港特别行政区':0,'澳门特别行政区':0}
+	    
+		var myChart = echarts.init(document.getElementById("main"));
+		var date = + new Date(2010);
+
+		var prov = ['北京市','天津市','上海市','重庆市','河北省','山西省','辽宁省','吉林省','黑龙江省','江苏省','浙江省','安徽省','福建省','江西省','山东省','河南省','湖北省','湖南省','广东省','海南省','四川省','贵州省','云南省','陕西省','甘肃省','青海省','台湾省','内蒙古自治区','广西壮族自治区','西藏自治区','宁夏回族自治区','新疆维吾尔自治区','香港特别行政区','澳门特别行政区']
+
+		var option = {
+				title:{
+					text:'各省份失踪人口总量',
+					subtext:'数据来自中国寻亲网'
+				},
+				tooltip:{
+					trigger:'axis'
+				},
+				legend:{
+				
+				},
+				toolbox:{
+					show:true,
+					feature:{
+						mark:{show:true},
+						dataView:{show:true,readOnly:false},
+						magicType:{show:true,type:['line','bar']},
+						saveAsImage:{show:true}
+					}
+				},
+				calculable:true,
+				xAxis:[
+				       {
+				    	   type:'value',
+				    	   boundaryGap:[0,0.01]
+				       }
+				],
+				yAxis:[
+					{
+						type:'category',
+						data:prov
+					}       
+				],
+				series:[{
+					type:'bar',
+					smooth:true,
+					label:{
+						normal:{
+							show:true,
+							position:'insideRight'
+						}
+					},
+					data:[]
+				}]
+		};
+		$(document).ready(function(){
+	    	window.setInterval("realTimeQuery()",2000);
+	    });
+		function realTimeQuery() {
+	        $.ajax({
+	        	url:'/getProvince',
+	            data: {"timed": new Date().getTime()},
+	            dataType: "json",
+	            type: "POST",
+	            error: function (XMLHttpRequest, textStatus, errorThrown) {
+	                realTimeQuery();
+	            },
+	            success: function (data) {
+	                refresh(data);
+	            }
+	        });
+	        t = setTimeout('realTimeQuery',5000);
+	    };
+	    function refresh(data) {
+			var servicedata = [];
+			for(var i = 0;i < data.length;i++){
+				statistic[String(data[i].province)] = data[i].cnt;
+			}
+			var k = 0;
+			for(var key in statistic){
+				servicedata[k++] = statistic[key];
+			}
+			console.log(servicedata.length);
+	        option.series[0]["data"] = servicedata;//动态刷新
+	        myChart.setOption(option);
+	    };
+	</script>
+</body>
+</html>
